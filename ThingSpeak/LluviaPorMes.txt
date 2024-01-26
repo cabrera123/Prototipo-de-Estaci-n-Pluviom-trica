@@ -1,0 +1,86 @@
+
+% Channel ID to read data from 
+readChannelID = 2202189; 
+% Humidity Field ID 
+myFieldID = 1;
+
+% Channel Read API Key 
+readAPIKey = '4UGTKV8UCEBA2I16'; 
+
+%datos ultimo dia
+
+%rango dia anterior
+yesterday=datetime('yesterday','TimeZone','America/Bogota');
+today=datetime('today','TimeZone','America/Bogota');
+
+oneDay = [yesterday today];
+
+
+%datos dia anterior
+[data,timestamps] =thingSpeakRead(readChannelID,'Fields',6,'dateRange', oneDay, 'ReadKey',readAPIKey);
+
+% Obtener índices de datos válidos (no NaN)
+validDataIdx = ~isnan(data);
+validData = data(validDataIdx);
+validTimestamps = timestamps(validDataIdx);
+
+
+monthdat=month(validTimestamps);
+monthact=month(today);
+
+
+if any(monthdat ~= monthact)
+
+    
+    % Obtener el primer día del mes anterior
+firstDayOfLastMonth = dateshift(today, 'start', 'month',-1);
+% Obtener el último día del mes anterior
+lastDayOfLastMonth = dateshift(today, 'end', 'month',-1);
+
+
+% Inicializar el vector que almacenará los acumulados de cada semana
+weeklyTotals = [];
+
+% Obtener los datos para cada semana y sumarlos al acumulado total semanal
+currentDay = firstDayOfLastMonth;
+while currentDay <= lastDayOfLastMonth
+    % Definir los límites del intervalo de la semana actual
+    startDate = currentDay;
+    endDate = dateshift(currentDay, 'end', 'week');
+    
+    if endDate > lastDayOfLastMonth
+        % Ajustar el endDate al lastDayOfLastMonth
+        endDate = lastDayOfLastMonth;
+    end
+    
+    if startDate == endDate
+        endDate = dateshift(currentDay, 'start', 'day', 1) - seconds(1);
+    end
+    
+   oneDay = [startDate endDate];
+
+        % Obtener los datos para todo el intervalo de la semana
+        rainWeek = thingSpeakRead(readChannelID, 'Fields', myFieldID, 'dateRange', [startDate, endDate+1], 'ReadKey', readAPIKey);
+    
+        weeklyTotals = [weeklyTotals, nansum(rainWeek)];
+        % Avanzar al primer día de la siguiente semana
+        currentDay = dateshift(currentDay, 'start', 'week', 1);
+end
+
+% weeklyTotals contendrá los acumulados de cada semana del mes anterior
+%disp('Acumulados de cada semana del mes anterior:');
+%disp(weeklyTotals);
+
+srainMonth = nansum(weeklyTotals)
+
+writeChannelID = 2202189; 
+% Enter the Write API Key between the '' below: 
+writeAPIKey = 'TU7IWTGG4GI14PCZ'; 
+
+% Learn more about the THINGSPEAKWRITE function by going to the Documentation tab on 
+% the right side pane of this page. 
+thingSpeakWrite(writeChannelID,'Fields',5,'Values',srainMonth,'WriteKey',writeAPIKey);
+
+else
+    disp('el mismo mes');
+end

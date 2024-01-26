@@ -1,0 +1,48 @@
+readChannelID = 2202189; 
+myFieldID = 1;
+readAPIKey = '4UGTKV8UCEBA2I16'; 
+writeChannelID = 2202189; 
+writeAPIKey = 'TU7IWTGG4GI14PCZ'; 
+
+rainXmin = rmmissing(thingSpeakRead(readChannelID,'ReadKey',readAPIKey,'Fields',myFieldID,NumMinutes=5));
+%noRain = rmmissing(thingSpeakRead(readChannelID,'ReadKey',readAPIKey,'Fields',myFieldID,NumMinutes=60))
+rainAco = rmmissing(thingSpeakRead(readChannelID,'ReadKey',readAPIKey,'Fields',7,NumPoints=100));
+
+ultimosDatosValidos = rainAco(end-5:end)
+
+iguales = all(ultimosDatosValidos == ultimosDatosValidos(1))  % Compara con el primer valor
+
+%rainData = (thingSpeakRead(readChannelID, 'ReadKey', readAPIKey, 'Fields', [myFieldID 7], 'NumMinutes', 60))
+
+% Calcular el acumulado de lluvia
+%noRain = rainData(:, 1)
+%rainAco = rainData(:, 2)
+
+%datos = rmmissing(rainAco);
+ultimo=rainAco(end);
+
+srainMin = nansum(rainXmin);
+srainno = nansum(ultimosDatosValidos);
+%srainAco = nansum(rainAco)
+
+display(srainMin,'lluvia anterior '); 
+display(ultimo,'lluvia acomulado'); 
+display(srainno,'lluvia ultima hora'); 
+
+%if (srainno == 0)
+if (iguales)
+    %acomulado = 0;
+    display('sin lluvia'); 
+    acomulado = srainMin;
+else
+    display('con lluvia'); 
+    acomulado = srainMin + ultimo;
+end
+    
+    
+
+
+
+display(acomulado,' acomulado'); 
+
+thingSpeakWrite(writeChannelID,'Fields',7,'Values',acomulado,'WriteKey',writeAPIKey);

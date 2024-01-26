@@ -1,0 +1,31 @@
+% Channel ID to read data from 
+readChannelID = 2202189; 
+% Humidity Field ID 
+myFieldID = 1;
+
+% Channel Read API Key 
+readAPIKey = '4UGTKV8UCEBA2I16'; 
+
+
+yesterday=datetime('yesterday','TimeZone','America/Bogota');
+today=datetime('today','TimeZone','America/Bogota');
+
+%rango de fechas de una semana
+oneDay = [yesterday-caldays(7) today];
+
+%datos de la lluvia 
+rainWeek = thingSpeakRead(readChannelID,'Fields',myFieldID,'dateRange', oneDay, 'ReadKey',readAPIKey);
+
+%suma datos validos lluvia x semana
+srainWeek = nansum(rainWeek);
+
+
+
+% Replace the [] with channel ID to write data to: 
+writeChannelID = 2202189; 
+% Enter the Write API Key between the '' below: 
+writeAPIKey = 'TU7IWTGG4GI14PCZ'; 
+
+% Learn more about the THINGSPEAKWRITE function by going to the Documentation tab on 
+% the right side pane of this page. 
+thingSpeakWrite(writeChannelID,'Fields',4,'Values',srainWeek,'WriteKey',writeAPIKey);

@@ -1,0 +1,46 @@
+readChannelID = 2202189; 
+myFieldID = 1;
+readAPIKey = '4UGTKV8UCEBA2I16'; 
+writeChannelID = 2202189; 
+writeAPIKey = 'TU7IWTGG4GI14PCZ'; 
+
+yesterday=datetime('yesterday','TimeZone','America/Bogota');
+today=datetime('today','TimeZone','America/Bogota');
+
+%fecha dia anterior
+oneDay = [yesterday today];
+
+%Datos dia anterior lluvia acomulada
+[data,timestamps] =thingSpeakRead(readChannelID,'Fields',6,'dateRange', oneDay, 'ReadKey',readAPIKey);
+
+% Obtener índices de datos válidos (no NaN)
+validDataIdx = ~isnan(data);
+% Dato ultimo valor lluvia acomulada
+validData = data(validDataIdx);
+%validTimestamps = timestamps(validDataIdx);
+
+
+%numero del dia actual
+[DayNumber,DayName] = weekday(today);
+
+%lee datos lluvia ultimo dia
+rainDay1 = thingSpeakRead(readChannelID,'Fields',myFieldID,'dateRange', oneDay, 'ReadKey',readAPIKey);
+
+%suma lluvia ultimo dia
+srainDay1 = nansum(rainDay1);
+
+%muestra lluvia dia anterior
+%display(srainDay1,'lluvia ayer '); 
+
+%Compruba si cambio la semana , reinicia el acomulado, si no suma lluvia acomulada + lluvia ultimo dia
+if any(DayNumber == 2)
+    disp('Siguiente semana');
+    acomulado = srainDay1;
+else
+    disp('Misma semana');
+    acomulado = srainDay1 + sum(validData)
+end
+
+% Learn more about the THINGSPEAKWRITE function by going to the Documentation tab on 
+% the right side pane of this page. 
+thingSpeakWrite(writeChannelID,'Fields',6,'Values',acomulado,'WriteKey',writeAPIKey);

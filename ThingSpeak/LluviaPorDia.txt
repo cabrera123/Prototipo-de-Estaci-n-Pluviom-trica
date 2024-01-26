@@ -1,0 +1,33 @@
+% Channel ID to read data from 
+readChannelID = 2202189; 
+% Humidity Field ID 
+humidityFieldID = 2; 
+myFieldID = 1;
+
+% Channel Read API Key 
+readAPIKey = '4UGTKV8UCEBA2I16'; 
+
+yesterday=datetime('yesterday','TimeZone','America/Bogota');
+today=datetime('today','TimeZone','America/Bogota');
+
+%intervalo de fechas
+oneDay = [yesterday today];
+
+%obtiene los datos del dia anterior
+rainDay1 = thingSpeakRead(readChannelID,'Fields',myFieldID,'dateRange', oneDay, 'ReadKey',readAPIKey);
+
+
+%suma todos los valores validos del dia anterior
+srainDay1 = nansum(rainDay1)
+
+%muestra el valor del acumulado de lluvia del dia anterior.
+%display(srainDay1,'Sum Rain day 1'); 
+
+
+% Replace the [] with channel ID to write data to: 
+writeChannelID = 2202189; 
+% Enter the Write API Key between the '' below: 
+writeAPIKey = 'TU7IWTGG4GI14PCZ'; 
+
+%subir datos lluvia x dia a campo de thinkspeak
+thingSpeakWrite(writeChannelID,'Fields',3,'Values',srainDay1,'WriteKey',writeAPIKey);
